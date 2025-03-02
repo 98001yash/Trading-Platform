@@ -23,32 +23,32 @@ public class AuthService {
     private final ModelMapper modelMapper;
     private final JwtTokenProvider jwtTokenProvider;
 
-
-    public UserDto signup(AuthRequestDto authRequestDto){
-        // check if the User already exists
+    public UserDto signUp(AuthRequestDto authRequestDto) {
+        // Check if the user already exists
         boolean exists = userRepository.existsByEmail(authRequestDto.getEmail());
-        if(exists){
+        if (exists) {
             throw new BadRequestException("User already exists, cannot signup again");
         }
 
-        // map request DTO  User entity
+        // Map request DTO to User entity
         User user = modelMapper.map(authRequestDto, User.class);
-        //check if admin code is provide and valid
-        if("YASH123".equals(authRequestDto.getAdminCode())){
-            user.setRole(Role.ADMIN); // allow setting role to Admin because passing the admin Code
-        }else if(authRequestDto.getRole()==null){
-            user.setRole(Role.USER);
-        }else {
+
+        // Check if admin code is provided and valid
+        if ("ADMIN123".equals(authRequestDto.getAdminCode())) {
+            user.setRole(Role.ADMIN); // Allow setting ADMIN role
+        } else if (authRequestDto.getRole() == null) {
+            user.setRole(Role.USER); // Default to STUDENT
+        } else {
             user.setRole(authRequestDto.getRole());
         }
 
-        // hash the password before saving
+        // Hash the password before saving
         user.setPassword(PasswordUtils.hashPassword(authRequestDto.getPassword()));
 
-        //save the user in the database
+        // Save the user in the database
         User savedUser = userRepository.save(user);
 
-        // map  the saved User entity to UserDto for response
+        // Map saved User entity to UserDto for response
         return modelMapper.map(savedUser, UserDto.class);
     }
 
@@ -64,31 +64,34 @@ public class AuthService {
         return jwtTokenProvider.generateAccessToken(user);
     }
 
-    public UserDto getUserByEmail(String email){
+    public UserDto getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(()->new ResourceNotFoundException("User not found with email: "+email));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
         return modelMapper.map(user, UserDto.class);
     }
 
-    public UserDto updateUser(UserDto userDto){
+    public UserDto updateUser(UserDto userDto) {
         User user = userRepository.findByEmail(userDto.getEmail())
-                .orElseThrow(()->new ResourceNotFoundException("User not found with  email "+userDto.getEmail()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + userDto.getEmail()));
 
-        // update user Details
+        // Update user details
         user.setName(userDto.getName());
         user.setRole(userDto.getRole());
         User updatedUser = userRepository.save(user);
         return modelMapper.map(updatedUser, UserDto.class);
     }
-
-    public UserDto getUserById(Long userId){
-        log.info("Fetching user by ID: {}",userId);
+    public UserDto getUserById(Long userId) {
+        log.info("Fetching user by ID: {}", userId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(()->new RuntimeException("User not found with ID: "+userId));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
         return new UserDto(user.getId(),
                 user.getName(),
                 user.getEmail(),
                 user.getRole());
     }
+
+
+
 }
