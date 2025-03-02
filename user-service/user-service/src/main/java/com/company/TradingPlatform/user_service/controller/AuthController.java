@@ -4,13 +4,17 @@ package com.company.TradingPlatform.user_service.controller;
 
 import com.company.TradingPlatform.user_service.dtos.AuthRequestDto;
 import com.company.TradingPlatform.user_service.dtos.UserDto;
+import com.company.TradingPlatform.user_service.entitiy.User;
 import com.company.TradingPlatform.user_service.exceptions.BadRequestException;
+import com.company.TradingPlatform.user_service.repository.UserRepository;
 import com.company.TradingPlatform.user_service.service.AuthService;
 import com.company.TradingPlatform.user_service.service.JwtTokenProvider;
+import com.company.TradingPlatform.user_service.service.OtpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +25,9 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
+    private final UserRepository userRepository;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestBody AuthRequestDto authRequestDto) {
@@ -73,4 +80,29 @@ public class AuthController {
         return ResponseEntity.ok(userDto);
     }
 
+
+    @PostMapping("/forget-password")
+    public ResponseEntity<String> forgetPassword(@RequestParam String email){
+        return ResponseEntity.ok(otpService.generateOtp(email));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+        boolean isValid = otpService.validateOtp(email, otp);
+        return isValid ? ResponseEntity.ok("OTP Verified") : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid OTP");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String otp, @RequestParam String newPassword) {
+        boolean isValid = otpService.validateOtp(email, otp);
+        if (!isValid) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid OTP");
+        }
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Password reset successfully");
+    }
 }
