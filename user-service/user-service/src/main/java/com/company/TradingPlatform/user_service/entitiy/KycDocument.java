@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "kyc_documents")
@@ -28,5 +29,5 @@ public class KycDocument {
     private String verificationRemarks;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime uploadedAt;
+    private Date uploadedAt;
 }
