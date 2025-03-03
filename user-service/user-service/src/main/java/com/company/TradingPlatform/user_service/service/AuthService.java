@@ -35,11 +35,11 @@ public class AuthService {
 
         // Check if admin code is provided and valid
         if ("ADMIN123".equals(authRequestDto.getAdminCode())) {
-            user.setRole(Role.ADMIN); // Allow setting ADMIN role
+            user.setRole(Role.valueOf(String.valueOf(Role.ADMIN))); // Allow setting ADMIN role
         } else if (authRequestDto.getRole() == null) {
-            user.setRole(Role.USER); // Default to STUDENT
+            user.setRole(Role.valueOf(String.valueOf(Role.USER))); // Default to STUDENT
         } else {
-            user.setRole(authRequestDto.getRole());
+            user.setRole(Role.valueOf(String.valueOf(authRequestDto.getRole())));
         }
 
         // Hash the password before saving
@@ -76,7 +76,7 @@ public class AuthService {
 
         // Update user details
         user.setName(userDto.getName());
-        user.setRole(userDto.getRole());
+        user.setRole(Role.valueOf(String.valueOf(userDto.getRole())));
         User updatedUser = userRepository.save(user);
         return modelMapper.map(updatedUser, UserDto.class);
     }
