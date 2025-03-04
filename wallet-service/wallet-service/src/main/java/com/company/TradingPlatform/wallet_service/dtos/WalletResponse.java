@@ -1,16 +1,20 @@
 package com.company.TradingPlatform.wallet_service.dtos;
 
-
-import com.company.TradingPlatform.wallet_service.enums.TransactionType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class WalletResponse {
 
-    private Double amount;
-    private TransactionType type;
+   private Long userId;
+   private Double balance;
    private List<TransactionResponse> transactions;
+
 }
