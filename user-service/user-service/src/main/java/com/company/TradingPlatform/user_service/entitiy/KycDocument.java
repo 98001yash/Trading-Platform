@@ -27,6 +27,9 @@ public class KycDocument {
     @Enumerated(EnumType.STRING)
     private VerificationStatus status;
 
+    @Column(nullable = true)
+    private Long userId;
+
     @Lob
     private String verificationRemarks;
 
