@@ -1,6 +1,7 @@
 package com.company.TradingPlatform.user_service.service;
 
 
+import com.company.TradingPlatform.user_service.client.WalletClient;
 import com.company.TradingPlatform.user_service.dtos.AuthRequestDto;
 import com.company.TradingPlatform.user_service.dtos.UserDto;
 import com.company.TradingPlatform.user_service.entitiy.User;
@@ -22,6 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final JwtTokenProvider jwtTokenProvider;
+    private final WalletClient walletClient;
 
     public UserDto signUp(AuthRequestDto authRequestDto) {
         // Check if the user already exists
@@ -48,6 +50,14 @@ public class AuthService {
         // Save the user in the database
         User savedUser = userRepository.save(user);
 
+        try{
+            //call Wallet service to create a wallet for the user
+            log.info("Calling wallet service to create a wallet for Usr ID: {}",savedUser.getId());
+            walletClient.createWallet(savedUser.getId());
+        }catch(Exception e){
+            log.error("Failed to create wallet for user ID: {}",savedUser.getId(),e);
+            throw new RuntimeException("User created , but wallet creation failed");
+        }
         // Map saved User entity to UserDto for response
         return modelMapper.map(savedUser, UserDto.class);
     }
